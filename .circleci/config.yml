@@ -1,0 +1,49 @@
+version: 2
+jobs:
+  test:
+    working_directory: ~/test
+
+    docker:
+      - image: circleci/node:11.2.0
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: package.json-{{ checksum "package.json" }}
+
+      - run: npm ci
+
+      - save_cache:
+          key: package.json-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+
+      - run: npm run lint
+      - run: npm run test
+
+  release:
+    working_directory: ~/release
+
+    docker:
+      - image: circleci/node:11.2.0
+
+    steps:
+      - checkout
+
+      - run: git config push.default current
+
+      - run: npm ci
+      - run: npm run release
+
+workflows:
+  version: 2
+  test-and-release:
+    jobs:
+      - test
+      - release:
+          requires:
+            - test
+          filters:
+            branches:
+              only: master
