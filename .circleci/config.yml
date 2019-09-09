@@ -21,6 +21,7 @@ jobs:
 
       - run: npm run lint
       - run: npm run test
+      - run: npm run coveralls
 
   release:
     working_directory: ~/release
