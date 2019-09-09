@@ -8,6 +8,7 @@
     "type": "git",
     "url": "https://github.com/taiichiro-nagase/type-guard-validator.git"
   },
+  "main": "src/validator.ts",
   "scripts": {
     "build": "tsc",
     "coveralls": "cat coverage/lcov.info | coveralls",
