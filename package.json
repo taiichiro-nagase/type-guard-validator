@@ -3,14 +3,19 @@
   "version": "1.0.1",
   "description": "Object validator by User-Defined Type Guards",
   "author": "Taiichiro Nagase <taiichiro.nagase@gmail.com>",
+  "keywords": [
+    "typescript",
+    "validation"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/taiichiro-nagase/type-guard-validator.git"
   },
-  "main": "src/validator.ts",
+  "main": "lib/validator.js",
+  "types": "lib/validator.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "rimraf lib && tsc",
     "coveralls": "cat coverage/lcov.info | coveralls",
     "lint": "eslint src/*",
     "test": "jest",
@@ -31,7 +36,6 @@
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
       "@semantic-release/changelog",
-      "@semantic-release/npm",
       [
         "@semantic-release/exec",
         {
@@ -48,11 +52,15 @@
           ]
         }
       ],
+      "@semantic-release/npm",
       "@semantic-release/github"
     ]
   },
   "dependencies": {
     "ts-custom-error": "^3.1.1"
+  },
+  "peerDependencies": {
+    "typescript": "^3.5.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.1.0",
@@ -61,13 +69,13 @@
     "@semantic-release/exec": "^3.3.6",
     "@semantic-release/git": "^7.0.16",
     "@types/jest": "^24.0.18",
-    "@typescript-eslint/eslint-plugin": "^2.1.0",
-    "@typescript-eslint/parser": "^2.1.0",
+    "@typescript-eslint/eslint-plugin": "^2.2.0",
+    "@typescript-eslint/parser": "^2.2.0",
     "coveralls": "^3.0.6",
     "eslint": "^6.3.0",
-    "eslint-config-prettier": "^6.2.0",
     "husky": "^3.0.5",
     "jest": "^24.9.0",
+    "rimraf": "^3.0.0",
     "semantic-release": "^15.13.24",
     "ts-jest": "^24.0.2",
     "typescript": "^3.6.2"
