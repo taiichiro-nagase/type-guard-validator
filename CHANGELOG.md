@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.0.1...v1.1.0) (2019-09-10)
+
+
+### Features
+
+* support two or more union and tuple ([1d289cf](https://github.com/taiichiro-nagase/type-guard-validator/commit/1d289cf))
+
 ## [1.0.1](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.0.0...v1.0.1) (2019-09-09)
 
 
