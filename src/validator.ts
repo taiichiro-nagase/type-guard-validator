@@ -1,20 +1,20 @@
 import { CustomError } from "ts-custom-error";
 
-class ValidationError extends CustomError {
-  public constructor(public readonly key: string, public readonly cause: string | ValidationError[], data: unknown) {
-    super(Array.isArray(cause) ? cause.map(e => e.message).join("\n") : `${key} is not ${cause}: ${JSON.stringify(data)}`);
-  }
-}
+type ExactInner<T> = <D>() => (D extends T ? D : D);
+type Exact<T> = ExactInner<T> & T;
 
 export type ValidatorFunction<T> = (key: string, data: unknown) => data is Exact<T>;
 export type ObjectValidator<T> = {
   [P in keyof T]-?: ValidatorFunction<T[P]>;
 };
 
-type ExactInner<T> = <D>() => (D extends T ? D : D);
-type Exact<T> = ExactInner<T> & T;
+export class ValidationError extends CustomError {
+  public constructor(public readonly key: string, public readonly cause: string | ValidationError[], data: unknown) {
+    super(Array.isArray(cause) ? cause.map(e => e.message).join("\n") : `${key} is not ${cause}: ${JSON.stringify(data)}`);
+  }
+}
 
-function type(key: string, data: unknown, type: "string" | "number" | "boolean"): data is Exact<boolean> {
+function type(key: string, data: unknown, type: "string" | "number" | "boolean" | "undefined"): data is Exact<boolean> {
   if (typeof data === type) {
     return true;
   }
@@ -32,6 +32,18 @@ export function number(key: string, data: unknown): data is Exact<number> {
 
 export function boolean(key: string, data: unknown): data is Exact<boolean> {
   return type(key, data, "boolean");
+}
+
+export function nullable(key: string, data: unknown): data is Exact<null> {
+  if (data === null) {
+    return true;
+  }
+
+  throw new ValidationError(key, "null", data);
+}
+
+export function undefinedable(key: string, data: unknown): data is Exact<undefined> {
+  return type(key, data, "undefined");
 }
 
 export function literal<T>(literal: T): ValidatorFunction<T> {
@@ -99,7 +111,7 @@ export function nullOr<T>(validator: ValidatorFunction<T>): ValidatorFunction<T 
     try {
       return validator(key, data);
     } catch (e) {
-      throw new ValidationError(key, `null or ${e.cause}`, data);
+      throw new ValidationError(key, `${e.cause} | null`, data);
     }
   };
 }
@@ -113,17 +125,29 @@ export function undefinedOr<T>(validator: ValidatorFunction<T>): ValidatorFuncti
     try {
       return validator(key, data);
     } catch (e) {
-      throw new ValidationError(key, `undefined or ${e.cause}`, data);
+      throw new ValidationError(key, `${e.cause} | undefined`, data);
     }
   };
 }
 
-function innerUnion(...validators: ValidatorFunction<any>[]): ValidatorFunction<any> {
+export function union<T1>(v1: ValidatorFunction<T1>): ValidatorFunction<T1>
+export function union<T1, T2>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>): ValidatorFunction<T1 | T2>
+export function union<T1, T2, T3>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>): ValidatorFunction<T1 | T2 | T3>
+export function union<T1, T2, T3, T4>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>): ValidatorFunction<T1 | T2 | T3 | T4>
+export function union<T1, T2, T3, T4, T5>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>): ValidatorFunction<T1 | T2 | T3 | T4 | T5>
+export function union<T1, T2, T3, T4, T5, T6>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>): ValidatorFunction<T1 | T2 | T3 | T4 | T5 | T6>
+export function union<T1, T2, T3, T4, T5, T6, T7>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>): ValidatorFunction<T1 | T2 | T3 | T4 | T5 | T6 | T7 >
+export function union<T1, T2, T3, T4, T5, T6, T7, T8>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>, v8?: ValidatorFunction<T8>): ValidatorFunction<T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8> {
+  const validators = [v1, v2, v3, v4, v5, v6, v7, v8];
   return (key: string, data: unknown): data is Exact<any> => {
     const errors: ValidationError[] = [];
     for (const i in validators) {
       try {
-        validators[i](`${key}`, data);
+        const validator = validators[i];
+        if (validator === undefined) {
+          continue;
+        }
+        validator(`${key}`, data);
         return true;
       } catch (e) {
         errors.push(e);
@@ -134,7 +158,16 @@ function innerUnion(...validators: ValidatorFunction<any>[]): ValidatorFunction<
   };
 }
 
-function innerTuple(...validators: ValidatorFunction<any>[]): ValidatorFunction<any> {
+export function tuple<T1>(v1: ValidatorFunction<T1>): ValidatorFunction<[T1]>
+export function tuple<T1, T2>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>): ValidatorFunction<[T1, T2]>
+export function tuple<T1, T2, T3>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>): ValidatorFunction<[T1, T2, T3]>
+export function tuple<T1, T2, T3, T4>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>): ValidatorFunction<[T1, T2, T3, T4]>
+export function tuple<T1, T2, T3, T4, T5>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>): ValidatorFunction<[T1, T2, T3, T4, T5]>
+export function tuple<T1, T2, T3, T4, T5, T6>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>): ValidatorFunction<[T1, T2, T3, T4, T5, T6]>
+export function tuple<T1, T2, T3, T4, T5, T6, T7>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>): ValidatorFunction<[T1, T2, T3, T4, T5, T6, T7]>
+export function tuple<T1, T2, T3, T4, T5, T6, T7, T8>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>, v8?: ValidatorFunction<T8>): ValidatorFunction<[T1, T2, T3, T4, T5, T6, T7, T8]>
+export function tuple<T1, T2, T3, T4, T5, T6, T7, T8>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>, v8?: ValidatorFunction<T8>, never?: never): ValidatorFunction<any> {
+  const validators = [v1, v2, v3, v4, v5, v6, v7, v8];
   return (key: string, data: unknown): data is Exact<any> => {
     if (!Array.isArray(data)) {
       throw new ValidationError(key, "tuple", data);
@@ -143,7 +176,11 @@ function innerTuple(...validators: ValidatorFunction<any>[]): ValidatorFunction<
     const errors: ValidationError[] = [];
     for (const i in validators) {
       try {
-        validators[i](`${key}[${i}]`, data[i]);
+        const validator = validators[i];
+        if (validator === undefined) {
+          continue;
+        }
+        validator(`${key}[${i}]`, data[i]);
       } catch (e) {
         errors.push(e);
       }
@@ -157,10 +194,3 @@ function innerTuple(...validators: ValidatorFunction<any>[]): ValidatorFunction<
   };
 }
 
-export function union<T1, T2>(validator1: ValidatorFunction<T1>, validator2: ValidatorFunction<T2>): ValidatorFunction<T1 | T2> {
-  return innerUnion(validator1, validator2);
-}
-
-export function tuple<T1, T2>(validator1: ValidatorFunction<T1>, validator2: ValidatorFunction<T2>): ValidatorFunction<[T1, T2]> {
-  return innerTuple(validator1, validator2);
-}

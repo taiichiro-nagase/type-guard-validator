@@ -1,4 +1,4 @@
-import { boolean, number, string, nullOr, undefinedOr, array, object, literal, union, tuple } from "../src/validator";
+import { boolean, number, string, nullOr, undefinedOr, array, object, literal, union, tuple, nullable, undefinedable } from "../src/validator";
 
 describe("validate", () => {
   it("validates correctly (string)", () => {
@@ -36,6 +36,28 @@ describe("validate", () => {
     expect(() => boolean("root", "a")).toThrowError("root is not boolean: \"a\"");
     expect(() => boolean("root", {})).toThrowError("root is not boolean: {}");
     expect(() => boolean("root", [])).toThrowError("root is not boolean: []");
+  });
+
+  it("validates correctly (nullable)", () => {
+    expect(nullable("root", null)).toBe(true);
+
+    expect(() => nullable("root", undefined)).toThrowError("root is not null: undefined");
+    expect(() => nullable("root", 0)).toThrowError("root is not null: 0");
+    expect(() => nullable("root", "a")).toThrowError("root is not null: \"a\"");
+    expect(() => nullable("root", true)).toThrowError("root is not null: true");
+    expect(() => nullable("root", {})).toThrowError("root is not null: {}");
+    expect(() => nullable("root", [])).toThrowError("root is not null: []");
+  });
+
+  it("validates correctly (undefinedable)", () => {
+    expect(undefinedable("root", undefined)).toBe(true);
+
+    expect(() => undefinedable("root", null)).toThrowError("root is not undefined: null");
+    expect(() => undefinedable("root", 0)).toThrowError("root is not undefined: 0");
+    expect(() => undefinedable("root", "a")).toThrowError("root is not undefined: \"a\"");
+    expect(() => undefinedable("root", true)).toThrowError("root is not undefined: true");
+    expect(() => undefinedable("root", {})).toThrowError("root is not undefined: {}");
+    expect(() => undefinedable("root", [])).toThrowError("root is not undefined: []");
   });
 
   it("validates correctly (object)", () => {
@@ -93,8 +115,6 @@ describe("validate", () => {
       }, null]
     };
 
-    expect(validator("root", data)).toBe(true);
-
     expect(() => validator("root", null)).toThrowError("root is not object: null");
     expect(() => validator("root", undefined)).toThrowError("root is not object: undefined");
     expect(() => validator("root", 0)).toThrowError("root is not object: 0");
@@ -103,7 +123,7 @@ describe("validate", () => {
     expect(() => validator("root", [])).toThrowError("root is not object: []");
     expect(() => validator("root", { ...data, string: undefined })).toThrowError("root.string is not string: undefined");
     expect(() => validator("root", { ...data, unionLiteral: "test" })).toThrowError("root.unionLiteral is not \"http\" | \"https\": \"test\"");
-    expect(() => validator("root", { ...data, tupleOfChildOrChildOrNull: [{}, undefined] })).toThrowError("root.tupleOfChildOrChildOrNull[0].tupleOfBooleanOrLiteral is not tuple: undefined\nroot.tupleOfChildOrChildOrNull[1] is not null or object: undefined");
+    expect(() => validator("root", { ...data, tupleOfChildOrChildOrNull: [{}, undefined] })).toThrowError("root.tupleOfChildOrChildOrNull[0].tupleOfBooleanOrLiteral is not tuple: undefined\nroot.tupleOfChildOrChildOrNull[1] is not object | null: undefined");
   });
 
   it("validates correctly (array)", () => {
@@ -124,18 +144,18 @@ describe("validate", () => {
     expect(nullOr(string)("root", "a")).toBe(true);
     expect(nullOr(string)("root", null)).toBe(true);
 
-    expect(() => nullOr(string)("root", undefined)).toThrowError("root is not null or string: undefined");
-    expect(() => nullOr(string)("root", 0)).toThrowError("root is not null or string: 0");
-    expect(() => nullOr(string)("root", true)).toThrowError("root is not null or string: true");
+    expect(() => nullOr(string)("root", undefined)).toThrowError("root is not string | null: undefined");
+    expect(() => nullOr(string)("root", 0)).toThrowError("root is not string | null: 0");
+    expect(() => nullOr(string)("root", true)).toThrowError("root is not string | null: true");
   });
 
   it("validates correctly (undefinedOr)", () => {
     expect(undefinedOr(number)("root", 0)).toBe(true);
     expect(undefinedOr(number)("root", undefined)).toBe(true);
 
-    expect(() => undefinedOr(number)("root", null)).toThrowError("root is not undefined or number: null");
-    expect(() => undefinedOr(number)("root", "a")).toThrowError("root is not undefined or number: \"a\"");
-    expect(() => undefinedOr(number)("root", true)).toThrowError("root is not undefined or number: true");
+    expect(() => undefinedOr(number)("root", null)).toThrowError("root is not number | undefined: null");
+    expect(() => undefinedOr(number)("root", "a")).toThrowError("root is not number | undefined: \"a\"");
+    expect(() => undefinedOr(number)("root", true)).toThrowError("root is not number | undefined: true");
   });
 
   it("validates correctly (union)", () => {
