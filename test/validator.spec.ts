@@ -1,4 +1,4 @@
-import { boolean, number, string, nullOr, undefinedOr, array, object, literal, union, tuple, nullable, undefinedable } from "../src/validator";
+import { boolean, number, string, nullOr, undefinedOr, array, object, literal, union, tuple, nullable, undefinedable, valueOf } from "../src/validator";
 
 describe("validate", () => {
   it("validates correctly (string)", () => {
@@ -178,5 +178,12 @@ describe("validate", () => {
     expect(() => tuple(string, number)("root", {})).toThrowError("root is not tuple: {}");
     expect(() => tuple(string, number)("root", [])).toThrowError("root[0] is not string: undefined\nroot[1] is not number: undefined");
     expect(() => tuple(string, number)("root", [true, null])).toThrowError("root[0] is not string: true\nroot[1] is not number: null");
+  });
+});
+
+describe("valueOf", () => {
+  it("converts correctly", () => {
+    expect(valueOf(string)("root", "string")).toBe("string");
+    expect(valueOf(string)("root", 1)).toBeNull();
   });
 });
