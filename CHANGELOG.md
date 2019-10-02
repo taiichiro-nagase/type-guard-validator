@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.1.0...v1.2.0) (2019-10-02)
+
+
+### Features
+
+* add valueOf function ([a9093e3](https://github.com/taiichiro-nagase/type-guard-validator/commit/a9093e3))
+
 # [1.1.0](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.0.1...v1.1.0) (2019-09-10)
 
 
