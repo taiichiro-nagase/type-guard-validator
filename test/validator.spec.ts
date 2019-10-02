@@ -183,7 +183,7 @@ describe("validate", () => {
 
 describe("valueOf", () => {
   it("converts correctly", () => {
-    expect(valueOf(string)("root", "string")).toBe("string");
-    expect(valueOf(string)("root", 1)).toBeNull();
+    expect(valueOf(string)("string")).toBe("string");
+    expect(valueOf(string)(1)).toBeNull();
   });
 });

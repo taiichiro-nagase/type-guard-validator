@@ -4,7 +4,7 @@ type ExactInner<T> = <D>() => (D extends T ? D : D);
 type Exact<T> = ExactInner<T> & T;
 
 export type ValidatorFunction<T> = (key: string, data: unknown) => data is Exact<T>;
-export type RetrieveFunction<T> = (key: string, data: unknown) => Exact<T> | null;
+export type RetrieveFunction<T> = (data: unknown) => Exact<T> | null;
 
 export type ObjectValidator<T> = {
   [P in keyof T]-?: ValidatorFunction<T[P]>;
@@ -133,9 +133,9 @@ export function undefinedOr<T>(validator: ValidatorFunction<T>): ValidatorFuncti
 }
 
 export function valueOf<T>(validator: ValidatorFunction<T>): RetrieveFunction<T> {
-  return (key: string, data: unknown): Exact<T> | null => {
+  return (data: unknown): Exact<T> | null => {
     try {
-      return validator(key, data) ? data : null;
+      return validator(".", data) ? data : null;
     } catch (e) {
       return null;
     }
