@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.2.1...v1.2.2) (2019-10-03)
+
+
+### Bug Fixes
+
+* export Exact type ([24980a8](https://github.com/taiichiro-nagase/type-guard-validator/commit/24980a8))
+
 ## [1.2.1](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.2.0...v1.2.1) (2019-10-02)
 
 
