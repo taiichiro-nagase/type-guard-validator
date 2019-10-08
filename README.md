@@ -2,7 +2,7 @@
 
 ![npm](https://img.shields.io/npm/v/type-guard-validator)
 ![GitHub](https://img.shields.io/github/license/taiichiro-nagase/type-guard-validator)
-![CircleCI](https://img.shields.io/circleci/build/github/taiichiro-nagase/type-guard-validator)
+![CircleCI](https://img.shields.io/circleci/build/github/taiichiro-nagase/type-guard-validator/develop)
 ![Coveralls](https://img.shields.io/coveralls/github/taiichiro-nagase/type-guard-validator)
 
 **type-guard-validator** provides type-safe & light-weight object validation by TypeScript [User-Defined Type Guard](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates).
@@ -68,6 +68,23 @@ userValidator("response", response);
 // ValidationError:
 //   response.role is not "admin" | "user": "unknown"
 //   response.email is not null or string: undefined
+```
+
+`typeOf` function returns `false` if validation failed.
+
+```typescript
+if (typeOf(userValidator)(response)) {
+  // `response` can behaves as `User` in this parenthesis
+  console.log(`${response.id} is ${response.role}`); // output: taiichiro-nagase is admin
+} else {
+  console.log("response is not user");
+}
+```
+
+`valueOf` function returns actual value or null.
+
+```typescript
+const user = valueOf(userValudator)(response); // `user` is `User | null`
 ```
 
 ### Prerequisites
