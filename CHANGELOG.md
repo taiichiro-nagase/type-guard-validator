@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.2.2...v1.2.3) (2019-10-08)
+
+
+### Bug Fixes
+
+* add typeOf function ([90431b5](https://github.com/taiichiro-nagase/type-guard-validator/commit/90431b5))
+
 ## [1.2.2](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.2.1...v1.2.2) (2019-10-03)
 
 
