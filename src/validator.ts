@@ -6,6 +6,7 @@ export type Exact<T> = ExactInner<T> & T;
 
 export type ValidatorFunction<T> = (key: string, data: unknown) => data is Exact<T>;
 export type RetrieveFunction<T> = (data: unknown) => Exact<T> | null;
+export type TypeCheckFunction<T> = (data: unknown) => data is Exact<T>;
 
 export type ObjectValidator<T> = {
   [P in keyof T]-?: ValidatorFunction<T[P]>;
@@ -143,10 +144,10 @@ export function valueOf<T>(validator: ValidatorFunction<T>): RetrieveFunction<T>
   };
 }
 
-export function typeOf<T>(validator: ValidatorFunction<T>): ValidatorFunction<T> {
-  return (key: string, data: unknown): data is Exact<T> => {
+export function typeOf<T>(validator: ValidatorFunction<T>): TypeCheckFunction<T> {
+  return (data: unknown): data is Exact<T> => {
     try {
-      return validator(key, data);
+      return validator(".", data);
     } catch (e) {
       return false;
     }

@@ -190,7 +190,7 @@ describe("valueOf", () => {
 
 describe("typeOf", () => {
   it("types correctly", () => {
-    expect(typeOf(string)("root", "string")).toBe(true);
-    expect(typeOf(string)("root", 1)).toBe(false);
+    expect(typeOf(string)("string")).toBe(true);
+    expect(typeOf(string)(1)).toBe(false);
   });
 });
