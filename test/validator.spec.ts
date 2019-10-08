@@ -1,4 +1,4 @@
-import { boolean, number, string, nullOr, undefinedOr, array, object, literal, union, tuple, nullable, undefinedable, valueOf } from "../src/validator";
+import { array, boolean, literal, nullable, nullOr, number, object, string, tuple, typeOf, undefinedable, undefinedOr, union, valueOf } from "../src/validator";
 
 describe("validate", () => {
   it("validates correctly (string)", () => {
@@ -185,5 +185,12 @@ describe("valueOf", () => {
   it("converts correctly", () => {
     expect(valueOf(string)("string")).toBe("string");
     expect(valueOf(string)(1)).toBeNull();
+  });
+});
+
+describe("typeOf", () => {
+  it("types correctly", () => {
+    expect(typeOf(string)("root", "string")).toBe(true);
+    expect(typeOf(string)("root", 1)).toBe(false);
   });
 });

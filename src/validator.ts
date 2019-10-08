@@ -143,6 +143,16 @@ export function valueOf<T>(validator: ValidatorFunction<T>): RetrieveFunction<T>
   };
 }
 
+export function typeOf<T>(validator: ValidatorFunction<T>): ValidatorFunction<T> {
+  return (key: string, data: unknown): data is Exact<T> => {
+    try {
+      return validator(key, data);
+    } catch (e) {
+      return false;
+    }
+  };
+}
+
 export function union<T1>(v1: ValidatorFunction<T1>): ValidatorFunction<T1>
 export function union<T1, T2>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>): ValidatorFunction<T1 | T2>
 export function union<T1, T2, T3>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>): ValidatorFunction<T1 | T2 | T3>
