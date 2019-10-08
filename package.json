@@ -42,6 +42,7 @@
           "prepareCmd": "npm run build"
         }
       ],
+      "@semantic-release/npm",
       [
         "@semantic-release/git",
         {
@@ -52,7 +53,6 @@
           ]
         }
       ],
-      "@semantic-release/npm",
       "@semantic-release/github"
     ]
   },
