@@ -1,3 +1,10 @@
+## [1.2.4](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.2.3...v1.2.4) (2019-10-08)
+
+
+### Bug Fixes
+
+* drop unnecessary parameter ([0242921](https://github.com/taiichiro-nagase/type-guard-validator/commit/0242921))
+
 ## [1.2.3](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.2.2...v1.2.3) (2019-10-08)
 
 
