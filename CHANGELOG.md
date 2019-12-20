@@ -1,3 +1,10 @@
+## [1.2.5](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.2.4...v1.2.5) (2019-12-20)
+
+
+### Bug Fixes
+
+* update dependencies ([b69614a](https://github.com/taiichiro-nagase/type-guard-validator/commit/b69614a08ef4bb00f868e1d875bbb6835772df24))
+
 ## [1.2.4](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.2.3...v1.2.4) (2019-10-08)
 
 
