@@ -2,8 +2,8 @@ import { array, boolean, literal, nullable, nullOr, number, object, string, tupl
 
 describe("validate", () => {
   it("validates correctly (string)", () => {
-    expect(string("root", "")).toBe(true);
-    expect(string("root", "string")).toBe(true);
+    expect(() => string("root", "")).not.toThrowError();
+    expect(() => string("root", "string")).not.toThrowError();
 
     expect(() => string("root", null)).toThrowError("root is not string: null");
     expect(() => string("root", undefined)).toThrowError("root is not string: undefined");
@@ -14,9 +14,9 @@ describe("validate", () => {
   });
 
   it("validates correctly (number)", () => {
-    expect(number("root", 0)).toBe(true);
-    expect(number("root", 1)).toBe(true);
-    expect(number("root", -1)).toBe(true);
+    expect(() => number("root", 0)).not.toThrowError();
+    expect(() => number("root", 1)).not.toThrowError();
+    expect(() => number("root", -1)).not.toThrowError();
 
     expect(() => number("root", null)).toThrowError("root is not number: null");
     expect(() => number("root", undefined)).toThrowError("root is not number: undefined");
@@ -27,8 +27,8 @@ describe("validate", () => {
   });
 
   it("validates correctly (boolean)", () => {
-    expect(boolean("root", true)).toBe(true);
-    expect(boolean("root", false)).toBe(true);
+    expect(() => boolean("root", true)).not.toThrowError();
+    expect(() => boolean("root", false)).not.toThrowError();
 
     expect(() => boolean("root", null)).toThrowError("root is not boolean: null");
     expect(() => boolean("root", undefined)).toThrowError("root is not boolean: undefined");
@@ -39,7 +39,7 @@ describe("validate", () => {
   });
 
   it("validates correctly (nullable)", () => {
-    expect(nullable("root", null)).toBe(true);
+    expect(() => nullable("root", null)).not.toThrowError();
 
     expect(() => nullable("root", undefined)).toThrowError("root is not null: undefined");
     expect(() => nullable("root", 0)).toThrowError("root is not null: 0");
@@ -50,7 +50,7 @@ describe("validate", () => {
   });
 
   it("validates correctly (undefinedable)", () => {
-    expect(undefinedable("root", undefined)).toBe(true);
+    expect(() => undefinedable("root", undefined)).not.toThrowError();
 
     expect(() => undefinedable("root", null)).toThrowError("root is not undefined: null");
     expect(() => undefinedable("root", 0)).toThrowError("root is not undefined: 0");
@@ -115,6 +115,8 @@ describe("validate", () => {
       }, null]
     };
 
+    expect(() => validator("root", data)).not.toThrowError();
+
     expect(() => validator("root", null)).toThrowError("root is not object: null");
     expect(() => validator("root", undefined)).toThrowError("root is not object: undefined");
     expect(() => validator("root", 0)).toThrowError("root is not object: 0");
@@ -127,8 +129,8 @@ describe("validate", () => {
   });
 
   it("validates correctly (array)", () => {
-    expect(array(string)("root", [])).toBe(true);
-    expect(array(string)("root", ["a", "b", "c"])).toBe(true);
+    expect(() => array(string)("root", [])).not.toThrowError();
+    expect(() => array(string)("root", ["a", "b", "c"])).not.toThrowError();
 
     expect(() => array(string)("root", [1])).toThrowError("root[0] is not string: 1");
     expect(() => array(string)("root", [1, "a", true])).toThrowError("root[0] is not string: 1\nroot[2] is not string: true");
@@ -141,8 +143,8 @@ describe("validate", () => {
   });
 
   it("validates correctly (nullOr)", () => {
-    expect(nullOr(string)("root", "a")).toBe(true);
-    expect(nullOr(string)("root", null)).toBe(true);
+    expect(() => nullOr(string)("root", "a")).not.toThrowError();
+    expect(() => nullOr(string)("root", null)).not.toThrowError();
 
     expect(() => nullOr(string)("root", undefined)).toThrowError("root is not string | null: undefined");
     expect(() => nullOr(string)("root", 0)).toThrowError("root is not string | null: 0");
@@ -150,8 +152,8 @@ describe("validate", () => {
   });
 
   it("validates correctly (undefinedOr)", () => {
-    expect(undefinedOr(number)("root", 0)).toBe(true);
-    expect(undefinedOr(number)("root", undefined)).toBe(true);
+    expect(() => undefinedOr(number)("root", 0)).not.toThrowError();
+    expect(() => undefinedOr(number)("root", undefined)).not.toThrowError();
 
     expect(() => undefinedOr(number)("root", null)).toThrowError("root is not number | undefined: null");
     expect(() => undefinedOr(number)("root", "a")).toThrowError("root is not number | undefined: \"a\"");
@@ -159,8 +161,8 @@ describe("validate", () => {
   });
 
   it("validates correctly (union)", () => {
-    expect(union(string, number)("root", "a")).toBe(true);
-    expect(union(string, number)("root", 0)).toBe(true);
+    expect(() => union(string, number)("root", "a")).not.toThrowError();
+    expect(() => union(string, number)("root", 0)).not.toThrowError();
 
     expect(() => union(string, number)("root", null)).toThrowError("root is not string | number: null");
     expect(() => union(string, number)("root", undefined)).toThrowError("root is not string | number: undefined");
@@ -170,7 +172,7 @@ describe("validate", () => {
   });
 
   it("validates correctly (tuple)", () => {
-    expect(tuple(string, number)("root", ["a", 0])).toBe(true);
+    expect(() => tuple(string, number)("root", ["a", 0])).not.toThrowError();
 
     expect(() => tuple(string, number)("root", null)).toThrowError("root is not tuple: null");
     expect(() => tuple(string, number)("root", undefined)).toThrowError("root is not tuple: undefined");
