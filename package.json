@@ -12,6 +12,7 @@
     "type": "git",
     "url": "https://github.com/taiichiro-nagase/type-guard-validator.git"
   },
+  "type": "module",
   "main": "lib/validator.js",
   "types": "lib/validator.d.ts",
   "scripts": {
