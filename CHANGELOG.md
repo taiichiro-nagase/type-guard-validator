@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.2.5...v2.0.0) (2020-03-24)
+
+
+### Features
+
+* use assert function ([#6](https://github.com/taiichiro-nagase/type-guard-validator/issues/6)) ([f4f671e](https://github.com/taiichiro-nagase/type-guard-validator/commit/f4f671ece18259dfc50a13da0d84b231b1e0de6a))
+
+
+### BREAKING CHANGES
+
+*
+
 ## [1.2.5](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.2.4...v1.2.5) (2019-12-20)
 
 
