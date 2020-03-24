@@ -4,7 +4,7 @@ import { CustomError } from "ts-custom-error";
 export type ExactInner<T> = <D>() => (D extends T ? D : D);
 export type Exact<T> = ExactInner<T> & T;
 
-export type ValidatorFunction<T> = (key: string, data: unknown) => data is Exact<T>;
+export type ValidatorFunction<T> = (key: string, data: unknown) => asserts data is Exact<T>;
 export type RetrieveFunction<T> = (data: unknown) => Exact<T> | null;
 export type TypeCheckFunction<T> = (data: unknown) => data is Exact<T>;
 
@@ -18,50 +18,44 @@ export class ValidationError extends CustomError {
   }
 }
 
-function type(key: string, data: unknown, type: "string" | "number" | "boolean" | "undefined"): data is Exact<boolean> {
-  if (typeof data === type) {
-    return true;
+function type(key: string, data: unknown, type: "string" | "number" | "boolean" | "undefined"): asserts data is Exact<boolean> {
+  if (typeof data !== type) {
+    throw new ValidationError(key, type, data);
   }
-
-  throw new ValidationError(key, type, data);
 }
 
-export function string(key: string, data: unknown): data is Exact<string> {
+export function string(key: string, data: unknown): asserts data is Exact<string> {
   return type(key, data, "string");
 }
 
-export function number(key: string, data: unknown): data is Exact<number> {
+export function number(key: string, data: unknown): asserts data is Exact<number> {
   return type(key, data, "number");
 }
 
-export function boolean(key: string, data: unknown): data is Exact<boolean> {
+export function boolean(key: string, data: unknown): asserts data is Exact<boolean> {
   return type(key, data, "boolean");
 }
 
-export function nullable(key: string, data: unknown): data is Exact<null> {
-  if (data === null) {
-    return true;
+export function nullable(key: string, data: unknown): asserts data is Exact<null> {
+  if (data !== null) {
+    throw new ValidationError(key, "null", data);
   }
-
-  throw new ValidationError(key, "null", data);
 }
 
-export function undefinedable(key: string, data: unknown): data is Exact<undefined> {
+export function undefinedable(key: string, data: unknown): asserts data is Exact<undefined> {
   return type(key, data, "undefined");
 }
 
 export function literal<T>(literal: T): ValidatorFunction<T> {
-  return (key: string, data: unknown): data is Exact<T> => {
-    if (data === literal) {
-      return true;
+  return (key: string, data: unknown): asserts data is Exact<T> => {
+    if (data !== literal) {
+      throw new ValidationError(key, JSON.stringify(literal), data);
     }
-
-    throw new ValidationError(key, JSON.stringify(literal), data);
   };
 }
 
 export function array<T>(validator: ValidatorFunction<T>): ValidatorFunction<T[]> {
-  return (key: string, data: unknown): data is Exact<T[]> => {
+  return (key: string, data: unknown): asserts data is Exact<T[]> => {
     if (!Array.isArray(data)) {
       throw new ValidationError(key, "array", data);
     }
@@ -75,16 +69,14 @@ export function array<T>(validator: ValidatorFunction<T>): ValidatorFunction<T[]
       }
     }
 
-    if (errors.length === 0) {
-      return true;
+    if (errors.length !== 0) {
+      throw new ValidationError(key, errors, data);
     }
-
-    throw new ValidationError(key, errors, data);
   };
 }
 
 export function object<T>(validator: ObjectValidator<T>): ValidatorFunction<T> {
-  return (key: string, data: unknown): data is Exact<T> => {
+  return (key: string, data: unknown): asserts data is Exact<T> => {
     if (typeof data !== "object" || data === null || Array.isArray(data)) {
       throw new ValidationError(key, "object", data);
     }
@@ -92,44 +84,39 @@ export function object<T>(validator: ObjectValidator<T>): ValidatorFunction<T> {
     const errors: ValidationError[] = [];
     for (const i in validator) {
       try {
-        validator[i](`${key}.${i}`, (data as any)[i]);
+        const v: ValidatorFunction<unknown> = validator[i];
+        v(`${key}.${i}`, (data as any)[i]);
       } catch (e) {
         errors.push(e);
       }
     }
 
-    if (errors.length === 0) {
-      return true;
+    if (errors.length !== 0) {
+      throw new ValidationError(key, errors, data);
     }
-
-    throw new ValidationError(key, errors, data);
   };
 }
 
 export function nullOr<T>(validator: ValidatorFunction<T>): ValidatorFunction<T | null> {
-  return (key: string, data: unknown): data is Exact<T | null> => {
-    if (data === null) {
-      return true;
-    }
-
-    try {
-      return validator(key, data);
-    } catch (e) {
-      throw new ValidationError(key, `${e.cause} | null`, data);
+  return (key: string, data: unknown): asserts data is Exact<T | null> => {
+    if (data !== null) {
+      try {
+        validator(key, data);
+      } catch (e) {
+        throw new ValidationError(key, `${e.cause} | null`, data);
+      }
     }
   };
 }
 
 export function undefinedOr<T>(validator: ValidatorFunction<T>): ValidatorFunction<T | undefined> {
-  return (key: string, data: unknown): data is Exact<T | undefined> => {
-    if (data === undefined) {
-      return true;
-    }
-
-    try {
-      return validator(key, data);
-    } catch (e) {
-      throw new ValidationError(key, `${e.cause} | undefined`, data);
+  return (key: string, data: unknown): asserts data is Exact<T | undefined> => {
+    if (data !== undefined) {
+      try {
+        return validator(key, data);
+      } catch (e) {
+        throw new ValidationError(key, `${e.cause} | undefined`, data);
+      }
     }
   };
 }
@@ -137,7 +124,8 @@ export function undefinedOr<T>(validator: ValidatorFunction<T>): ValidatorFuncti
 export function valueOf<T>(validator: ValidatorFunction<T>): RetrieveFunction<T> {
   return (data: unknown): Exact<T> | null => {
     try {
-      return validator(".", data) ? data : null;
+      validator(".", data);
+      return data;
     } catch (e) {
       return null;
     }
@@ -147,7 +135,8 @@ export function valueOf<T>(validator: ValidatorFunction<T>): RetrieveFunction<T>
 export function typeOf<T>(validator: ValidatorFunction<T>): TypeCheckFunction<T> {
   return (data: unknown): data is Exact<T> => {
     try {
-      return validator(".", data);
+      validator(".", data);
+      return true;
     } catch (e) {
       return false;
     }
@@ -163,7 +152,7 @@ export function union<T1, T2, T3, T4, T5, T6>(v1: ValidatorFunction<T1>, v2?: Va
 export function union<T1, T2, T3, T4, T5, T6, T7>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>): ValidatorFunction<T1 | T2 | T3 | T4 | T5 | T6 | T7 >
 export function union<T1, T2, T3, T4, T5, T6, T7, T8>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>, v8?: ValidatorFunction<T8>): ValidatorFunction<T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8> {
   const validators = [v1, v2, v3, v4, v5, v6, v7, v8];
-  return (key: string, data: unknown): data is Exact<any> => {
+  return (key: string, data: unknown): asserts data is Exact<unknown> => {
     const errors: ValidationError[] = [];
     for (const i in validators) {
       try {
@@ -171,8 +160,9 @@ export function union<T1, T2, T3, T4, T5, T6, T7, T8>(v1: ValidatorFunction<T1>,
         if (validator === undefined) {
           continue;
         }
-        validator(`${key}`, data);
-        return true;
+        const v: ValidatorFunction<unknown> = validator;
+        v(`${key}`, data);
+        return;
       } catch (e) {
         errors.push(e);
       }
@@ -190,9 +180,9 @@ export function tuple<T1, T2, T3, T4, T5>(v1: ValidatorFunction<T1>, v2?: Valida
 export function tuple<T1, T2, T3, T4, T5, T6>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>): ValidatorFunction<[T1, T2, T3, T4, T5, T6]>
 export function tuple<T1, T2, T3, T4, T5, T6, T7>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>): ValidatorFunction<[T1, T2, T3, T4, T5, T6, T7]>
 export function tuple<T1, T2, T3, T4, T5, T6, T7, T8>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>, v8?: ValidatorFunction<T8>): ValidatorFunction<[T1, T2, T3, T4, T5, T6, T7, T8]>
-export function tuple<T1, T2, T3, T4, T5, T6, T7, T8>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>, v8?: ValidatorFunction<T8>, never?: never): ValidatorFunction<any> {
+export function tuple<T1, T2, T3, T4, T5, T6, T7, T8>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>, v8?: ValidatorFunction<T8>, never?: never): ValidatorFunction<unknown> {
   const validators = [v1, v2, v3, v4, v5, v6, v7, v8];
-  return (key: string, data: unknown): data is Exact<any> => {
+  return (key: string, data: unknown): asserts data is Exact<unknown> => {
     if (!Array.isArray(data)) {
       throw new ValidationError(key, "tuple", data);
     }
@@ -204,17 +194,17 @@ export function tuple<T1, T2, T3, T4, T5, T6, T7, T8>(v1: ValidatorFunction<T1>,
         if (validator === undefined) {
           continue;
         }
-        validator(`${key}[${i}]`, data[i]);
+
+        const v: ValidatorFunction<unknown> = validator;
+        v(`${key}[${i}]`, data[i]);
       } catch (e) {
         errors.push(e);
       }
     }
 
-    if (errors.length === 0) {
-      return true;
+    if (errors.length !== 0) {
+      throw new ValidationError(key, errors, data);
     }
-
-    throw new ValidationError(key, errors, data);
   };
 }
 
