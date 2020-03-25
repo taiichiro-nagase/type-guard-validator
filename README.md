@@ -47,10 +47,9 @@ const response = {
   messages: []
 };
 
-if(userValidator(".", response)) {
-  // `response` can behaves as `User` in this parenthesis
-  console.log(`${response.id} is ${response.role}`); // output: taiichiro-nagase is admin
-}
+userValidator(".", response);
+// `response` can behaves as `User` in this parenthesis
+console.log(`${response.id} is ${response.role}`); // output: taiichiro-nagase is admin
 ```
 
 `ValidationError` is thrown if the validator detects type errors.
@@ -70,7 +69,7 @@ userValidator("response", response);
 //   response.email is not null or string: undefined
 ```
 
-`typeOf` function returns `false` if validation failed.
+`typeOf` function returns `false` instead of throwing an error if validation failed.
 
 ```typescript
 if (typeOf(userValidator)(response)) {
@@ -89,14 +88,14 @@ const user = valueOf(userValudator)(response); // `user` is `User | null`
 
 ### Prerequisites
 
-Lowest TypeScript support starts at version 3.5.1
+Lowest TypeScript support starts at version 3.7.5
 
 ```bash
-npm install --save-dev typescript@^3.5.1
+npm install --save-dev typescript@^3.7.5
 ```
 
 ### Installing
 
 ```bash
-npm install --save type-guard-validator
+npm install type-guard-validator
 ```
