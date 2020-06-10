@@ -4,7 +4,8 @@ import { CustomError } from 'ts-custom-error';
 export type ExactInner<T> = <D>() => (D extends T ? D : D);
 export type Exact<T> = ExactInner<T> & T;
 
-export type ValidatorFunction<T> = (key: string, data: unknown) => asserts data is Exact<T>;
+export type ValidatorFunction<T> = (key: string, data: unknown) => data is Exact<T>;
+export type AssertFunction<T> = (key: string, data: unknown) => asserts data is Exact<T>;
 export type RetrieveFunction<T> = (data: unknown) => Exact<T> | null;
 export type TypeCheckFunction<T> = (data: unknown) => data is Exact<T>;
 
@@ -19,8 +20,12 @@ export class ValidationError extends CustomError {
   }
 }
 
-function nullOrUndefined<T>(value: T | null | undefined): value is T {
-  return value !== null && value !== undefined;
+function primitive(key: string, data: unknown, type: 'string' | 'number' | 'boolean' | 'undefined'): data is Exact<boolean> {
+  if (typeof data === type) { // eslint-disable-line valid-typeof
+    return true;
+  }
+
+  throw new ValidationError(key, type, data);
 }
 
 // eslint-disable-next-line max-len
@@ -33,44 +38,46 @@ function toError<T>(validator: ValidatorFunction<T>, key: string, data: unknown)
   }
 }
 
-function primitive(key: string, data: unknown, type: 'string' | 'number' | 'boolean' | 'undefined'): asserts data is Exact<boolean> {
-  if (typeof data !== type) { // eslint-disable-line valid-typeof
-    throw new ValidationError(key, type, data);
-  }
+function nullOrUndefined<T>(value: T | null | undefined): value is T {
+  return value !== null && value !== undefined;
 }
 
-export function string(key: string, data: unknown): asserts data is Exact<string> {
+export function string(key: string, data: unknown): data is Exact<string> {
   return primitive(key, data, 'string');
 }
 
-export function number(key: string, data: unknown): asserts data is Exact<number> {
+export function number(key: string, data: unknown): data is Exact<number> {
   return primitive(key, data, 'number');
 }
 
-export function boolean(key: string, data: unknown): asserts data is Exact<boolean> {
+export function boolean(key: string, data: unknown): data is Exact<boolean> {
   return primitive(key, data, 'boolean');
 }
 
-export function nullable(key: string, data: unknown): asserts data is Exact<null> {
-  if (data !== null) {
-    throw new ValidationError(key, 'null', data);
+export function nullable(key: string, data: unknown): data is Exact<null> {
+  if (data === null) {
+    return true;
   }
+
+  throw new ValidationError(key, 'null', data);
 }
 
-export function undefinedable(key: string, data: unknown): asserts data is Exact<undefined> {
+export function undefinedable(key: string, data: unknown): data is Exact<undefined> {
   return primitive(key, data, 'undefined');
 }
 
 export function literal<T>(value: T): ValidatorFunction<T> {
-  return (key: string, data: unknown): asserts data is Exact<T> => {
-    if (data !== value) {
-      throw new ValidationError(key, JSON.stringify(value), data);
+  return (key: string, data: unknown): data is Exact<T> => {
+    if (data === value) {
+      return true;
     }
+
+    throw new ValidationError(key, JSON.stringify(value), data);
   };
 }
 
 export function array<T>(validator: ValidatorFunction<T>): ValidatorFunction<T[]> {
-  return (key: string, data: unknown): asserts data is Exact<T[]> => {
+  return (key: string, data: unknown): data is Exact<T[]> => {
     if (!Array.isArray(data)) {
       throw new ValidationError(key, 'array', data);
     }
@@ -79,14 +86,16 @@ export function array<T>(validator: ValidatorFunction<T>): ValidatorFunction<T[]
       .map((value, i) => toError(validator, `${key}[${i}]`, value))
       .filter(nullOrUndefined);
 
-    if (errors.length !== 0) {
-      throw new ValidationError(key, errors, data);
+    if (errors.length === 0) {
+      return true;
     }
+
+    throw new ValidationError(key, errors, data);
   };
 }
 
 export function object<T>(validator: ObjectValidator<T>): ValidatorFunction<T> {
-  return (key: string, data: unknown): asserts data is Exact<T> => {
+  return (key: string, data: unknown): data is Exact<T> => {
     if (typeof data !== 'object' || data === null || Array.isArray(data)) {
       throw new ValidationError(key, 'object', data);
     }
@@ -96,20 +105,22 @@ export function object<T>(validator: ObjectValidator<T>): ValidatorFunction<T> {
       .map((property) => toError((validator as any)[property], `${key}.${property}`, (data as any)[property]))
       .filter(nullOrUndefined);
 
-    if (errors.length !== 0) {
-      throw new ValidationError(key, errors, data);
+    if (errors.length === 0) {
+      return true;
     }
+
+    throw new ValidationError(key, errors, data);
   };
 }
 
 export function nullOr<T>(validator: ValidatorFunction<T>): ValidatorFunction<T | null> {
-  return (key: string, data: unknown): asserts data is Exact<T | null> => {
+  return (key: string, data: unknown): data is Exact<T | null> => {
     if (data === null) {
-      return;
+      return true;
     }
 
     try {
-      validator(key, data);
+      return validator(key, data);
     } catch (e) {
       throw new ValidationError(key, `${e.cause} | null`, data);
     }
@@ -117,13 +128,13 @@ export function nullOr<T>(validator: ValidatorFunction<T>): ValidatorFunction<T 
 }
 
 export function undefinedOr<T>(validator: ValidatorFunction<T>): ValidatorFunction<T | undefined> {
-  return (key: string, data: unknown): asserts data is Exact<T | undefined> => {
+  return (key: string, data: unknown): data is Exact<T | undefined> => {
     if (data === undefined) {
-      return;
+      return true;
     }
 
     try {
-      validator(key, data);
+      return validator(key, data);
     } catch (e) {
       throw new ValidationError(key, `${e.cause} | undefined`, data);
     }
@@ -133,8 +144,7 @@ export function undefinedOr<T>(validator: ValidatorFunction<T>): ValidatorFuncti
 export function valueOf<T>(validator: ValidatorFunction<T>): RetrieveFunction<T> {
   return (data: unknown): Exact<T> | null => {
     try {
-      validator('.', data);
-      return data;
+      return validator('.', data) ? data : null;
     } catch (e) {
       return null;
     }
@@ -144,11 +154,16 @@ export function valueOf<T>(validator: ValidatorFunction<T>): RetrieveFunction<T>
 export function typeOf<T>(validator: ValidatorFunction<T>): TypeCheckFunction<T> {
   return (data: unknown): data is Exact<T> => {
     try {
-      validator('.', data);
-      return true;
+      return validator('.', data);
     } catch (e) {
       return false;
     }
+  };
+}
+
+export function assertOf<T>(validator: ValidatorFunction<T>): AssertFunction<T> {
+  return (key: string, data: unknown): asserts data is Exact<T> => {
+    validator(key, data);
   };
 }
 
@@ -162,15 +177,17 @@ export function union<T1, T2, T3, T4, T5, T6>(v1: ValidatorFunction<T1>, v2?: Va
 export function union<T1, T2, T3, T4, T5, T6, T7>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>): ValidatorFunction<T1 | T2 | T3 | T4 | T5 | T6 | T7 >;
 export function union<T1, T2, T3, T4, T5, T6, T7, T8>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>, v8?: ValidatorFunction<T8>): ValidatorFunction<T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8> {
   const validators = [v1, v2, v3, v4, v5, v6, v7, v8];
-  return (key: string, data: unknown): asserts data is Exact<unknown> => {
+  return (key: string, data: unknown): data is Exact<T1 | T2 | T3 | T4 | T5 | T6 | T7 | T8> => {
     const errors = validators
       .filter(nullOrUndefined)
-      .map((validator) => toError(validator, key, data))
+      .map((validator) => toError<any>(validator, key, data))
       .filter(nullOrUndefined);
 
-    if (errors.length === validators.filter(nullOrUndefined).length) {
-      throw new ValidationError(key, errors.map((e) => e.cause).join(' | '), data);
+    if (errors.length !== validators.filter(nullOrUndefined).length) {
+      return true;
     }
+
+    throw new ValidationError(key, errors.map((e) => e.cause).join(' | '), data);
   };
 }
 /* eslint-enable max-len */
@@ -184,21 +201,23 @@ export function tuple<T1, T2, T3, T4, T5>(v1: ValidatorFunction<T1>, v2?: Valida
 export function tuple<T1, T2, T3, T4, T5, T6>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>): ValidatorFunction<[T1, T2, T3, T4, T5, T6]>;
 export function tuple<T1, T2, T3, T4, T5, T6, T7>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>): ValidatorFunction<[T1, T2, T3, T4, T5, T6, T7]>;
 export function tuple<T1, T2, T3, T4, T5, T6, T7, T8>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>, v8?: ValidatorFunction<T8>): ValidatorFunction<[T1, T2, T3, T4, T5, T6, T7, T8]>;
-export function tuple<T1, T2, T3, T4, T5, T6, T7, T8>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>, v8?: ValidatorFunction<T8>, never?: never): ValidatorFunction<unknown> { // eslint-disable-line @typescript-eslint/no-unused-vars
+export function tuple<T1, T2, T3, T4, T5, T6, T7, T8>(v1: ValidatorFunction<T1>, v2?: ValidatorFunction<T2>, v3?: ValidatorFunction<T3>, v4?: ValidatorFunction<T4>, v5?: ValidatorFunction<T5>, v6?: ValidatorFunction<T6>, v7?: ValidatorFunction<T7>, v8?: ValidatorFunction<T8>, never?: never): ValidatorFunction<any> { // eslint-disable-line @typescript-eslint/no-unused-vars
   const validators = [v1, v2, v3, v4, v5, v6, v7, v8];
-  return (key: string, data: unknown): asserts data is Exact<unknown> => {
+  return (key: string, data: unknown): data is Exact<unknown> => {
     if (!Array.isArray(data)) {
       throw new ValidationError(key, 'tuple', data);
     }
 
     const errors = validators
       .filter(nullOrUndefined)
-      .map((validator, i) => toError(validator, `${key}[${i}]`, data[i]))
+      .map((validator, i) => toError<any>(validator, `${key}[${i}]`, data[i]))
       .filter(nullOrUndefined);
 
-    if (errors.length !== 0) {
-      throw new ValidationError(key, errors, data);
+    if (errors.length === 0) {
+      return true;
     }
+
+    throw new ValidationError(key, errors, data);
   };
 }
 /* eslint-enable max-len */
