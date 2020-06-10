@@ -1,6 +1,6 @@
 {
   "name": "type-guard-validator",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Object validator by User-Defined Type Guards",
   "author": "Taiichiro Nagase <taiichiro.nagase@gmail.com>",
   "keywords": [

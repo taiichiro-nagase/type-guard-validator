@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/taiichiro-nagase/type-guard-validator/compare/v2.0.0...v2.1.0) (2020-06-10)
+
+
+### Features
+
+* revert ValiatorFunction ([#9](https://github.com/taiichiro-nagase/type-guard-validator/issues/9)) ([b4a00a9](https://github.com/taiichiro-nagase/type-guard-validator/commit/b4a00a92d7a110742761aa1f0adf6d24f6ffef8c))
+
 # [2.0.0](https://github.com/taiichiro-nagase/type-guard-validator/compare/v1.2.5...v2.0.0) (2020-03-24)
 
 
