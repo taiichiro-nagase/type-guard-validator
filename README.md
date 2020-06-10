@@ -47,9 +47,10 @@ const response = {
   messages: []
 };
 
-userValidator(".", response);
-// `response` can behaves as `User` in this parenthesis
-console.log(`${response.id} is ${response.role}`); // output: taiichiro-nagase is admin
+if (userValidator(".", response)) {
+  // `response` can behaves as `User` in this parenthesis
+  console.log(`${response.id} is ${response.role}`); // output: taiichiro-nagase is admin
+}
 ```
 
 `ValidationError` is thrown if the validator detects type errors.
@@ -84,6 +85,13 @@ if (typeOf(userValidator)(response)) {
 
 ```typescript
 const user = valueOf(userValudator)(response); // `user` is `User | null`
+```
+
+`assertOf` function behaves as assert function.
+
+```typescript
+assertOf(userValudator)(response);
+// `response` can behaves as `User` after the function
 ```
 
 ### Prerequisites
