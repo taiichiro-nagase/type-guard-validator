@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/taiichiro-nagase/type-guard-validator/compare/v2.1.0...v2.2.0) (2020-11-02)
+
+
+### Features
+
+* support commonjs ([#13](https://github.com/taiichiro-nagase/type-guard-validator/issues/13)) ([4621aa0](https://github.com/taiichiro-nagase/type-guard-validator/commit/4621aa034e105a2fcc7a966892e461768da295da))
+
 # [2.1.0](https://github.com/taiichiro-nagase/type-guard-validator/compare/v2.0.0...v2.1.0) (2020-06-10)
 
 
