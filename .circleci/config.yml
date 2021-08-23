@@ -34,7 +34,7 @@ jobs:
 
       - run: git config push.default current
 
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run release
 
 workflows:
