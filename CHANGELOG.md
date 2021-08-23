@@ -1,3 +1,17 @@
+# [3.0.0](https://github.com/taiichiro-nagase/type-guard-validator/compare/v2.2.0...v3.0.0) (2021-08-23)
+
+
+### Features
+
+* update dependencies ([#27](https://github.com/taiichiro-nagase/type-guard-validator/issues/27)) ([7084c8d](https://github.com/taiichiro-nagase/type-guard-validator/commit/7084c8d6f7227ec9e77a6d0c22b9af5cd5034c8f))
+
+
+### BREAKING CHANGES
+
+* update node version
+
+* chore: update eslint
+
 # [2.2.0](https://github.com/taiichiro-nagase/type-guard-validator/compare/v2.1.0...v2.2.0) (2020-11-02)
 
 
