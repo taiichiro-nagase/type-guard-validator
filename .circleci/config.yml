@@ -4,7 +4,7 @@ jobs:
     working_directory: ~/test
 
     docker:
-      - image: circleci/node:11.2.0
+      - image: circleci/node:16.3.0
 
     steps:
       - checkout
@@ -27,7 +27,7 @@ jobs:
     working_directory: ~/release
 
     docker:
-      - image: circleci/node:11.2.0
+      - image: circleci/node:16.3.0
 
     steps:
       - checkout
